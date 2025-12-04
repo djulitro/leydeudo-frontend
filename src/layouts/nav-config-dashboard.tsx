@@ -1,51 +1,53 @@
-import { Label } from 'src/components/label';
+import type { RoutePermissionConfig } from 'src/utils/permissions';
+
 import { SvgColor } from 'src/components/svg-color';
 
 // ----------------------------------------------------------------------
 
 const icon = (name: string) => <SvgColor src={`/assets/icons/navbar/${name}.svg`} />;
 
+// Tipo extendido para items del nav con permisos
 export type NavItem = {
   title: string;
   path: string;
   icon: React.ReactNode;
   info?: React.ReactNode;
+  permissions?: RoutePermissionConfig; // Configuración de permisos
+  children?: NavItem[]; // Para submenus futuros
 };
 
-export const navData = [
+// ----------------------------------------------------------------------
+// CONFIGURACIÓN DE NAVEGACIÓN CON PERMISOS
+// ----------------------------------------------------------------------
+
+export const navConfig: NavItem[] = [
   {
     title: 'Dashboard',
     path: '/',
     icon: icon('ic-analytics'),
   },
   {
-    title: 'User',
+    title: 'Gestión de Usuarios',
     path: '/user',
     icon: icon('ic-user'),
+    permissions: {
+      requireSetting: 'user.mantenedor',
+      requirePermission: 'users.view',
+    },
   },
-  {
-    title: 'Product',
-    path: '/products',
-    icon: icon('ic-cart'),
-    info: (
-      <Label color="error" variant="inverted">
-        +3
-      </Label>
-    ),
-  },
-  {
-    title: 'Blog',
-    path: '/blog',
-    icon: icon('ic-blog'),
-  },
+];
+
+// ----------------------------------------------------------------------
+// NAVEGACIÓN PÚBLICA (MOSTRAR SIEMPRE)
+// ----------------------------------------------------------------------
+
+export const publicNavItems: NavItem[] = [
   {
     title: 'Sign in',
     path: '/sign-in',
     icon: icon('ic-lock'),
-  },
-  {
-    title: 'Not found',
-    path: '/404',
-    icon: icon('ic-disabled'),
+    permissions: {
+      isPublic: true,
+    },
   },
 ];
