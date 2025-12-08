@@ -1,13 +1,15 @@
 import path from 'path';
 import checker from 'vite-plugin-checker';
-import { defineConfig } from 'vite';
+import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react-swc';
 
 // ----------------------------------------------------------------------
 
-const PORT = 3000;
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, process.cwd(), '');
+  const PORT = Number(env.VITE_PORT) || 3000;
 
-export default defineConfig({
+  return {
   plugins: [
     react(),
     checker({
@@ -33,4 +35,5 @@ export default defineConfig({
   },
   server: { port: PORT, host: true },
   preview: { port: PORT, host: true },
+  };
 });
