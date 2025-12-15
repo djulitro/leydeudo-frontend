@@ -10,6 +10,8 @@ import TableCell from '@mui/material/TableCell';
 import IconButton from '@mui/material/IconButton';
 import MenuItem, { menuItemClasses } from '@mui/material/MenuItem';
 
+import { useRouter } from 'src/routes/hooks';
+
 import { Label } from 'src/components/label';
 import { Iconify } from 'src/components/iconify';
 
@@ -33,6 +35,7 @@ type UserTableRowProps = {
 };
 
 export function UserTableRow({ row, selected, onSelectRow, activatedUser, disabledUser }: UserTableRowProps) {
+  const router = useRouter();
   const [openPopover, setOpenPopover] = useState<HTMLButtonElement | null>(null);
 
   const handleOpenPopover = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
@@ -42,6 +45,11 @@ export function UserTableRow({ row, selected, onSelectRow, activatedUser, disabl
   const handleClosePopover = useCallback(() => {
     setOpenPopover(null);
   }, []);
+
+  const handleEditUser = useCallback(() => {
+    handleClosePopover();
+    router.push(`/user/${row.id}/edit`);
+  }, [router, row.id, handleClosePopover]);
 
   return (
     <>
@@ -101,7 +109,7 @@ export function UserTableRow({ row, selected, onSelectRow, activatedUser, disabl
             },
           }}
         >
-          <MenuItem onClick={handleClosePopover}>
+          <MenuItem onClick={handleEditUser}>
             <Iconify icon="solar:pen-bold" />
             Editar
           </MenuItem>

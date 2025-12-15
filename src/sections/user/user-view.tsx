@@ -1,11 +1,14 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 
 import { useRouter } from 'src/routes/hooks';
+
 import { useTable } from 'src/hooks/use-table';
+
+import { hasPermission } from 'src/utils/permissions';
 
 import { activated, getUsers, disable } from 'src/api';
 import { DashboardContent } from 'src/layouts/dashboard';
@@ -18,7 +21,6 @@ import { UserTableRow } from './components/user-table-row';
 import { UserTableToolbar } from './components/user-table-toolbar';
 
 import type { UserProps } from './components/user-table-row';
-import { hasPermission } from 'src/utils/permissions';
 
 // ----------------------------------------------------------------------
 
@@ -29,9 +31,11 @@ export function UserView() {
 
   const [filterName, setFilterName] = useState('');
   const [tableData, setTableData] = useState<UserProps[]>([]);
+  const [loading, setLoading] = useState(false);
 
   const handleGetUsers = useCallback(async () => {
     try {
+      setLoading(true);
       const response: any = await getUsers();
 
       const users = response.users.filter((user: any) => user.id !== currentUser?.id);
@@ -46,6 +50,8 @@ export function UserView() {
       })));
     } catch (error) {
       console.error('Error fetching users:', error);
+    } finally {
+      setLoading(false);
     }
   }, [currentUser?.id]);
 
@@ -72,6 +78,27 @@ export function UserView() {
   useEffect(() => {
     handleGetUsers();
   }, [handleGetUsers]);
+
+  // Filtrar datos en tiempo real basado en el filterName
+  const filteredData = useMemo(() => {
+    if (!filterName) return tableData;
+
+    const searchTerm = filterName.toLowerCase();
+
+    return tableData.filter((user) => {
+      const name = user.name.toLowerCase();
+      const email = user.email.toLowerCase();
+      const role = user.role.toLowerCase();
+      const status = user.status ? 'activado' : 'desactivado';
+
+      return (
+        name.includes(searchTerm) ||
+        email.includes(searchTerm) ||
+        role.includes(searchTerm) ||
+        status.includes(searchTerm)
+      );
+    });
+  }, [tableData, filterName]);
 
   return (
     <DashboardContent>
@@ -101,14 +128,15 @@ export function UserView() {
       </Box>
 
       <DataTable
+        loading={loading}
         table={{
           ...table,
           filterName,
           setFilterName,
-          allRowIds: tableData.map((u) => u.id),
+          allRowIds: filteredData.map((u) => u.id),
         }}
-        rows={tableData}
-        totalRows={tableData.length}  
+        rows={filteredData}
+        totalRows={filteredData.length}  
         headLabel={[
           { id: 'name', label: 'Nombre' },
           { id: 'email', label: 'Email' },

@@ -1,4 +1,4 @@
-import type { UserProps } from './user-table-row';
+import type { UserProps } from './components/user-table-row';
 
 // ----------------------------------------------------------------------
 

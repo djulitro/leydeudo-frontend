@@ -13,6 +13,7 @@ import {
   TableSortLabel,
   TableContainer,
   TablePagination,
+  Skeleton,
 } from '@mui/material';
 
 import { Scrollbar } from 'src/components/scrollbar';
@@ -44,6 +45,7 @@ type DataTableProps<T> = {
   rowsPerPageOptions?: number[];
   showCheckboxes?: boolean; // Control si se muestran los checkboxes de selección
   showSorting?: boolean; // Control si se muestra el ordenamiento
+  loading?: boolean; // Estado de carga
 };
 
 export function DataTable<T>({
@@ -57,6 +59,7 @@ export function DataTable<T>({
   rowsPerPageOptions = [5, 10, 25],
   showCheckboxes = true,
   showSorting = true,
+  loading = false,
 }: DataTableProps<T>) {
   const notFound = !rows.length && !!(renderToolbar ? (table.filterName || '') : false);
   const colSpan = headLabel.length + (showCheckboxes ? 1 : 0);
@@ -126,47 +129,67 @@ export function DataTable<T>({
             </TableHead>
 
             <TableBody>
-              {rows
-                .slice(table.page * table.rowsPerPage, table.page * table.rowsPerPage + table.rowsPerPage)
-                .map((row: any) => (
-                  <React.Fragment key={row.id}>
-                    {renderRow(
-                      row,
-                      table.selected.includes(row.id),
-                      () => table.onSelectRow(row.id)
+              {loading ? (
+                // Mostrar skeleton rows mientras carga
+                Array.from({ length: table.rowsPerPage }).map((_, index) => (
+                  <TableRow key={index}>
+                    {showCheckboxes && (
+                      <TableCell padding="checkbox">
+                        <Skeleton variant="rectangular" width={18} height={18} />
+                      </TableCell>
                     )}
-                  </React.Fragment>
-                ))}
-
-              <TableEmptyRows
-                height={68}
-                emptyRows={
-                  table.page > 0 
-                    ? Math.max(0, table.rowsPerPage - rows.slice(table.page * table.rowsPerPage, table.page * table.rowsPerPage + table.rowsPerPage).length)
-                    : 0
-                }
-              />
-
-              {notFound && (
-                <TableRow>
-                  <TableCell align="center" colSpan={colSpan}>
-                    <Box sx={{ py: 15, textAlign: 'center' }}>
-                      <Typography variant="h6" sx={{ mb: 1 }}>
-                        No se encontraron resultados
-                      </Typography>
-
-                      <Typography variant="body2">
-                        {emptyMessage}
-                        {table.filterName && (
-                          <>
-                            <br />
-                            Búsqueda: <strong>&quot;{table.filterName}&quot;</strong>
-                          </>
+                    {headLabel.map((headCell) => (
+                      <TableCell key={headCell.id}>
+                        <Skeleton variant="text" width="80%" />
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              ) : (
+                <>
+                  {rows
+                    .slice(table.page * table.rowsPerPage, table.page * table.rowsPerPage + table.rowsPerPage)
+                    .map((row: any) => (
+                      <React.Fragment key={row.id}>
+                        {renderRow(
+                          row,
+                          table.selected.includes(row.id),
+                          () => table.onSelectRow(row.id)
                         )}
-                      </Typography>
-                    </Box>
-                  </TableCell>
-                </TableRow>
+                      </React.Fragment>
+                    ))}
+
+                  <TableEmptyRows
+                    height={68}
+                    emptyRows={
+                      table.page > 0 
+                        ? Math.max(0, table.rowsPerPage - rows.slice(table.page * table.rowsPerPage, table.page * table.rowsPerPage + table.rowsPerPage).length)
+                        : 0
+                    }
+                  />
+
+                  {notFound && (
+                    <TableRow>
+                      <TableCell align="center" colSpan={colSpan}>
+                        <Box sx={{ py: 15, textAlign: 'center' }}>
+                          <Typography variant="h6" sx={{ mb: 1 }}>
+                            No se encontraron resultados
+                          </Typography>
+
+                          <Typography variant="body2">
+                            {emptyMessage}
+                            {table.filterName && (
+                              <>
+                                <br />
+                                Búsqueda: <strong>&quot;{table.filterName}&quot;</strong>
+                              </>
+                            )}
+                          </Typography>
+                        </Box>
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </>
               )}
             </TableBody>
           </Table>

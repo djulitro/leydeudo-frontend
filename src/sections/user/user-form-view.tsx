@@ -4,23 +4,22 @@ import { useNavigate, useParams } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Stack from '@mui/material/Stack';
+import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
+import Dialog from '@mui/material/Dialog';
+import Skeleton from '@mui/material/Skeleton';
+import MenuItem from '@mui/material/MenuItem';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import LoadingButton from '@mui/lab/LoadingButton';
-import MenuItem from '@mui/material/MenuItem';
-import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
-import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
-import Alert from '@mui/material/Alert';
+import DialogContent from '@mui/material/DialogContent';
 
 import { useRouter } from 'src/routes/hooks';
 
 import { DashboardContent } from 'src/layouts/dashboard';
-
-import { apiClient } from 'src/utils/api-client';
-import { createUser, getRoles } from 'src/api';
+import { createUser, getRoles, getUserById, updateUser } from 'src/api';
 
 // ----------------------------------------------------------------------
 
@@ -59,6 +58,7 @@ export function UserFormView() {
   const [errors, setErrors] = useState<Partial<UserFormData>>({});
   const [roles, setRoles] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(false);
   const [resetTokenDialog, setResetTokenDialog] = useState<{
     open: boolean;
     token?: string;
@@ -89,17 +89,26 @@ export function UserFormView() {
 
   const loadUserData = useCallback(async (id: string) => {
     try {
-      setLoading(true);
-      // TODO: Reemplazar con llamada a API
-      // const response = await apiClient.get(`/users/${id}`);
-      // setFormData(response);
+      setInitialLoading(true);
+      const response: any = await getUserById(id);
       
-      // Mock data para desarrollo
-      console.log('Loading user data for id:', id);
+      console.log('User data loaded:', response);
+      // Mapear los datos del usuario al formulario
+      setFormData({
+        email: response.data.email || '',
+        nombre: response.data.nombre || '',
+        apellidos: response.data.apellidos || '',
+        rut: response.data.rut || '',
+        direccion: response.data.direccion || '',
+        telefono: response.data.telefono || '',
+        celular: response.data.celular || '',
+        role_slug: response.data.roles?.[0]?.slug || '',
+      });
     } catch (error) {
       console.error('Error loading user:', error);
+      // Opcional: Mostrar mensaje de error al usuario
     } finally {
-      setLoading(false);
+      setInitialLoading(false);
     }
   }, []);
 
@@ -187,7 +196,7 @@ export function UserFormView() {
         if (!updateData.password) {
           delete updateData.password;
         }
-        await apiClient.put(`/users/${userId}`, updateData);
+        await updateUser(userId, updateData);
         console.log('User updated successfully');
         // Navegar de vuelta a la lista
         router.push('/user');
@@ -246,7 +255,32 @@ export function UserFormView() {
         </Typography>
       </Box>
 
-      <Card sx={{ p: 3 }}>
+      {initialLoading ? (
+        <Card sx={{ p: 3 }}>
+          <Stack spacing={3}>
+            <Skeleton variant="text" width="30%" height={40} />
+            
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+              <Skeleton variant="rounded" width="100%" height={56} />
+              <Skeleton variant="rounded" width="100%" height={56} />
+            </Stack>
+            
+            <Skeleton variant="rounded" width="100%" height={56} />
+            <Skeleton variant="rounded" width="100%" height={56} />
+            <Skeleton variant="rounded" width="100%" height={56} />
+            
+            <Skeleton variant="text" width="30%" height={40} sx={{ mt: 3 }} />
+            
+            <Skeleton variant="rounded" width="100%" height={80} />
+            
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+              <Skeleton variant="rounded" width="100%" height={56} />
+              <Skeleton variant="rounded" width="100%" height={56} />
+            </Stack>
+          </Stack>
+        </Card>
+      ) : (
+        <Card sx={{ p: 3 }}>
         <form onSubmit={handleSubmit}>
           <Stack spacing={3}>
             {/* Información Básica */}
@@ -393,6 +427,7 @@ export function UserFormView() {
           </Stack>
         </form>
       </Card>
+      )}
 
       {/* Diálogo para mostrar el enlace de reset de contraseña */}
       <Dialog
