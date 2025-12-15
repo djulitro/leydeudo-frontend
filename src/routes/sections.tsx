@@ -17,8 +17,10 @@ import { navConfig } from 'src/layouts/nav-config-dashboard';
 // ----------------------------------------------------------------------
 
 export const DashboardPage = lazy(() => import('src/pages/dashboard'));
-export const UserPage = lazy(() => import('src/pages/user'));
+export const UserPage = lazy(() => import('src/pages/user/user'));
+export const UserFormPage = lazy(() => import('src/pages/user/user-form'));
 export const SignInPage = lazy(() => import('src/pages/sign-in'));
+export const ResetPasswordPage = lazy(() => import('src/pages/reset-password'));
 export const Page404 = lazy(() => import('src/pages/page-not-found'));
 
 const renderFallback = () => (
@@ -65,6 +67,22 @@ export const routesSection: RouteObject[] = [
           </PermissionRoute>
         )
       },
+      { 
+        path: 'user/create', 
+        element: (
+          <PermissionRoute permissions={navConfig.find(item => item.path === '/user')?.permissions}>
+            <UserFormPage />
+          </PermissionRoute>
+        )
+      },
+      { 
+        path: 'user/:userId/edit', 
+        element: (
+          <PermissionRoute permissions={navConfig.find(item => item.path === '/user')?.permissions}>
+            <UserFormPage />
+          </PermissionRoute>
+        )
+      },
     ],
   },
   {
@@ -72,6 +90,14 @@ export const routesSection: RouteObject[] = [
     element: (
       <AuthLayout>
         <SignInPage />
+      </AuthLayout>
+    ),
+  },
+  {
+    path: 'reset-password/:token',
+    element: (
+      <AuthLayout>
+        <ResetPasswordPage />
       </AuthLayout>
     ),
   },

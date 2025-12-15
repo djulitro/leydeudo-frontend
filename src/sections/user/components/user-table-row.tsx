@@ -18,20 +18,21 @@ import { Iconify } from 'src/components/iconify';
 export type UserProps = {
   id: string;
   name: string;
+  email: string;
   role: string;
   status: string;
-  company: string;
   avatarUrl: string;
-  isVerified: boolean;
 };
 
 type UserTableRowProps = {
   row: UserProps;
   selected: boolean;
   onSelectRow: () => void;
+  activatedUser: (id: number) => void;
+  disabledUser: (id: number) => void;
 };
 
-export function UserTableRow({ row, selected, onSelectRow }: UserTableRowProps) {
+export function UserTableRow({ row, selected, onSelectRow, activatedUser, disabledUser }: UserTableRowProps) {
   const [openPopover, setOpenPopover] = useState<HTMLButtonElement | null>(null);
 
   const handleOpenPopover = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
@@ -62,20 +63,12 @@ export function UserTableRow({ row, selected, onSelectRow }: UserTableRowProps) 
           </Box>
         </TableCell>
 
-        <TableCell>{row.company}</TableCell>
+        <TableCell>{row.email}</TableCell>
 
         <TableCell>{row.role}</TableCell>
 
-        <TableCell align="center">
-          {row.isVerified ? (
-            <Iconify width={22} icon="solar:check-circle-bold" sx={{ color: 'success.main' }} />
-          ) : (
-            '-'
-          )}
-        </TableCell>
-
         <TableCell>
-          <Label color={(row.status === 'banned' && 'error') || 'success'}>{row.status}</Label>
+          <Label color={(!row.status && 'error') || 'success'}>{row.status ? 'Activado' : 'Desactivado'}</Label>
         </TableCell>
 
         <TableCell align="right">
@@ -110,13 +103,27 @@ export function UserTableRow({ row, selected, onSelectRow }: UserTableRowProps) 
         >
           <MenuItem onClick={handleClosePopover}>
             <Iconify icon="solar:pen-bold" />
-            Edit
+            Editar
           </MenuItem>
 
-          <MenuItem onClick={handleClosePopover} sx={{ color: 'error.main' }}>
-            <Iconify icon="solar:trash-bin-trash-bold" />
-            Delete
-          </MenuItem>
+          {row.status ? (
+            <MenuItem onClick={() => {
+              disabledUser(Number(row.id));
+              handleClosePopover();
+            }} sx={{ color: 'error.main' }}>
+              <Iconify icon="solar:trash-bin-trash-bold" />
+              Desactivar
+            </MenuItem>
+          ) : (
+            <MenuItem onClick={() => {
+              activatedUser(Number(row.id));
+              handleClosePopover();
+            }} sx={{ color: 'success.main' }}>
+              <Iconify icon="eva:checkmark-fill" />
+              Activar
+            </MenuItem>
+          )}
+          
         </MenuList>
       </Popover>
     </>
