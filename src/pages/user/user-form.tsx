@@ -1,15 +1,15 @@
 import { CONFIG } from 'src/config-global';
 
-import { UserView } from 'src/sections/user/view';
+import { UserFormView } from 'src/sections/user/user-form-view';
 
 // ----------------------------------------------------------------------
 
 export default function Page() {
   return (
     <>
-      <title>{`Usuarios - ${CONFIG.appName}`}</title>
+      <title>{`Usuario - ${CONFIG.appName}`}</title>
 
-      <UserView />
+      <UserFormView />
     </>
   );
 }

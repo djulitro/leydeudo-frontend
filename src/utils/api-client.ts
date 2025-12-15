@@ -26,6 +26,7 @@ class ApiClient {
     const url = `${this.baseURL}${endpoint}`;
     const headers = {
       ...getAuthHeaders(),
+      'Accept': 'application/json',
       ...options.headers,
     };
 
@@ -36,6 +37,7 @@ class ApiClient {
       const response = await fetch(url, {
         ...options,
         headers,
+        credentials: 'include', // Importante para CSRF cookies
         signal: controller.signal,
       });
 
