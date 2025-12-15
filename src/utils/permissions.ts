@@ -1,12 +1,14 @@
 import type { Role, Setting, Permissions } from 'src/types/auth.types';
 
+import { CONFIG } from 'src/config-global';
+
 // ----------------------------------------------------------------------
 // STORAGE KEYS
 // ----------------------------------------------------------------------
 
-const STORAGE_KEY_ROLES = 'auth_roles';
-const STORAGE_KEY_SETTINGS = 'auth_settings';
-const STORAGE_KEY_PERMISSIONS = 'auth_permissions';
+const STORAGE_KEY_ROLES = `${CONFIG.storagePrefix}auth_roles`;
+const STORAGE_KEY_SETTINGS = `${CONFIG.storagePrefix}auth_settings`;
+const STORAGE_KEY_PERMISSIONS = `${CONFIG.storagePrefix}auth_permissions`;
 
 // ----------------------------------------------------------------------
 // GETTERS

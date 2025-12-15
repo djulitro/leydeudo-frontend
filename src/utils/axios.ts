@@ -1,6 +1,10 @@
+import { CONFIG } from 'src/config-global';
+
+// ----------------------------------------------------------------------
+
 // Utilidad para manejar peticiones HTTP con JWT
 
-const STORAGE_KEY_TOKEN = 'auth_token';
+const STORAGE_KEY_TOKEN = `${CONFIG.storagePrefix}auth_token`;
 
 /**
  * Obtiene el token JWT del localStorage
@@ -57,19 +61,25 @@ export const authFetch = async (url: string, options: RequestInit = {}): Promise
 /**
  * Ejemplo de uso con tu API:
  *
+ * import { CONFIG } from 'src/config-global';
+ *
  * // GET request
- * const response = await authFetch('http://localhost:3000/api/users');
+ * const response = await authFetch(`${CONFIG.apiBaseUrl}/users`);
  * const users = await response.json();
  *
  * // POST request
- * const response = await authFetch('http://localhost:3000/api/products', {
+ * const response = await authFetch(`${CONFIG.apiBaseUrl}/products`, {
  *   method: 'POST',
  *   body: JSON.stringify({ name: 'Product 1', price: 100 })
  * });
  *
  * // PUT request
- * const response = await authFetch('http://localhost:3000/api/users/1', {
+ * const response = await authFetch(`${CONFIG.apiBaseUrl}/users/1`, {
  *   method: 'PUT',
  *   body: JSON.stringify({ name: 'Updated Name' })
  * });
+ * 
+ * // Recomendado: Usar apiClient en su lugar
+ * import { apiClient } from 'src/utils/api-client';
+ * const users = await apiClient.get('/users');
  */

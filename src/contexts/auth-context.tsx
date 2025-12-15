@@ -3,6 +3,7 @@ import type { Role, Setting, UserData, Permissions } from 'src/types/auth.types'
 
 import { useMemo, useState, useEffect, useContext, useCallback, createContext } from 'react';
 
+import { apiClient } from 'src/utils/api-client';
 import {
   getUserRoles,
   getUserSettings,
@@ -10,6 +11,9 @@ import {
   saveUserAuthorization,
   clearUserAuthorization,
 } from 'src/utils/permissions';
+
+import { CONFIG } from 'src/config-global';
+
 
 // ----------------------------------------------------------------------
 
@@ -35,23 +39,8 @@ type AuthProviderProps = {
   children: ReactNode;
 };
 
-const STORAGE_KEY_USER = 'auth_user';
-const STORAGE_KEY_TOKEN = 'auth_token';
-
-// Simulación de JWT token
-const generateMockJWT = (email: string): string => {
-  const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
-  const payload = btoa(
-    JSON.stringify({
-      email,
-      sub: '1',
-      iat: Math.floor(Date.now() / 1000),
-      exp: Math.floor(Date.now() / 1000) + 3600 * 24, // 24 horas
-    })
-  );
-  const signature = btoa('mock_signature_' + email);
-  return `${header}.${payload}.${signature}`;
-};
+const STORAGE_KEY_USER = `${CONFIG.storagePrefix}auth_user`;
+const STORAGE_KEY_TOKEN = `${CONFIG.storagePrefix}auth_token`;
 
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null);
@@ -91,85 +80,17 @@ export function AuthProvider({ children }: AuthProviderProps) {
   // Login (aquí puedes integrar tu API)
   const login = useCallback(async (email: string, password: string) => {
     try {
-      // TODO: Reemplazar con llamada real a tu API
-      // const response = await fetch('http://localhost:3000/api/auth/login', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ email, password })
-      // });
-      //
-      // if (!response.ok) {
-      //   const error = await response.json();
-      //   throw new Error(error.message || 'Error al iniciar sesión');
-      // }
-      //
-      // const data = await response.json();
-      // const { token, user } = data;
+      const response: any = await apiClient.post('/login', { email, password });
 
-      // Simulación de API con delay realista
-      await new Promise((resolve) => setTimeout(resolve, 800));
+      setUser(response.user);
+      setToken(response.token);
+      setRoles(response.roles);
+      setSettings(response.settings);
+      setPermissions(response.permissions);
 
-      // Validación básica
-      if (password.length < 6) {
-        throw new Error('La contraseña debe tener al menos 6 caracteres');
-      }
-
-      // Generar token JWT simulado
-      const mockToken = generateMockJWT(email);
-
-      // Datos mock basados en la respuesta real del backend
-      const mockRoles: Role[] = [
-        {
-          id: 1,
-          name: 'Super Administrador',
-          slug: 'super_admin',
-        },
-      ];
-
-      const mockSettings: Setting[] = [
-        {
-          id: 1,
-          name: 'Gestión de Usuarios',
-          slug: 'user.mantenedor',
-          description: 'Configuraciones relacionadas con el mantenedor de usuarios',
-          active: true,
-        },
-      ];
-
-      const mockPermissions: Permissions = {
-        'user.mantenedor': {
-          setting_name: 'Gestión de Usuarios',
-          permissions: ['users.view', 'users.create', 'users.edit', 'users.delete'],
-        },
-      };
-
-      // Usuario simulado (esto vendría del backend)
-      const mockUser: User = {
-        id: 1,
-        email,
-        nombre: email.split('@')[0],
-        apellidos: 'Demo',
-        rut: '123456789',
-      };
-
-      // Guardar en estado y localStorage
-      setUser(mockUser);
-      setToken(mockToken);
-      setRoles(mockRoles);
-      setSettings(mockSettings);
-      setPermissions(mockPermissions);
-
-      localStorage.setItem(STORAGE_KEY_USER, JSON.stringify(mockUser));
-      localStorage.setItem(STORAGE_KEY_TOKEN, mockToken);
-      saveUserAuthorization(mockRoles, mockSettings, mockPermissions);
-
-      console.log('✅ Login exitoso');
-      console.log('📧 Usuario:', mockUser.email);
-      console.log('👤 Nombre:', `${mockUser.nombre} ${mockUser.apellidos}`);
-      console.log('🔑 Token JWT:', mockToken);
-      console.log('🎭 Roles:', mockRoles);
-      console.log('⚙️ Settings:', mockSettings);
-      console.log('🔐 Permissions:', mockPermissions);
+      localStorage.setItem(STORAGE_KEY_USER, JSON.stringify(response.user));
+      localStorage.setItem(STORAGE_KEY_TOKEN, response.token);
+      saveUserAuthorization(response.roles, response.settings, response.permissions);
     } catch (error) {
       console.error('❌ Login error:', error);
       throw error;
